@@ -16,9 +16,42 @@ import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
+import { readdirSync, statSync } from 'node:fs';
+
+// Pre-flight verification written for the Lamplight Harbor hand-in: copying is
+// only worth doing when the game entry point is present and the screenshots
+// sit inside the bounty caps (3 or 4 images, each at most 256 KiB), so fail
+// loudly here instead of letting a malformed entry reach the scorer.
+function verifyHandIn(root: string): void {
+  const problems: string[] = [];
+  if (!existsSync(join(root, 'game', 'index.html'))) {
+    problems.push('game/index.html is missing');
+  }
+  const shotsDir = join(root, 'screenshots');
+  const shots = existsSync(shotsDir)
+    ? readdirSync(shotsDir).filter((name) => /\.(png|jpe?g)$/i.test(name)).sort()
+    : [];
+  if (shots.length < 3 || shots.length > 4) {
+    problems.push(`screenshots/ holds ${shots.length} image(s), the bounty takes 3 or 4`);
+  }
+  for (const name of shots) {
+    const bytes = statSync(join(shotsDir, name)).size;
+    if (bytes > 262144) {
+      problems.push(`screenshots/${name} is ${bytes} bytes, over the 256 KiB cap`);
+    }
+  }
+  if (problems.length > 0) {
+    throw new Error(`Lamplight Harbor hand-in is incomplete: ${problems.join('; ')}`);
+  }
+  console.log(
+    `Lamplight Harbor hand-in verified: game/index.html plus ${shots.length} screenshots (${shots.join(', ')})`,
+  );
+}
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+
+verifyHandIn(here);
 
 mkdirSync(out, { recursive: true });
 cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
