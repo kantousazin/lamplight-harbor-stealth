@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lamplight Harbor — a top-down stealth game</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #070b14; }
+  body { display: grid; place-items: center; }
+  canvas { width: min(100vw, 177.78vh); height: auto; aspect-ratio: 16 / 9; display: block; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<canvas id="game" width="1280" height="720"></canvas>
+<p id="status" class="visually-hidden" role="status" aria-live="polite"></p>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
